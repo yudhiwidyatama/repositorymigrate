@@ -7,13 +7,14 @@ def extract_digests(parsed_content):
     try:
         # Extract the config digest
         config_digest = parsed_content["config"]["digest"]
-
+    except KeyError:
+        config_digest = None
+    try:
         # Extract the layer digests
         layer_digests = [layer["digest"] for layer in parsed_content["layers"]]
-
         return config_digest, layer_digests
     except KeyError:
-        return None, []
+        return config_digest, []
 
 def read_s3_content_from_csv():
     # Replace with your actual credentials and endpoint
