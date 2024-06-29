@@ -14,7 +14,12 @@ def extract_digests(parsed_content):
         layer_digests = [layer["digest"] for layer in parsed_content["layers"]]
         return config_digest, layer_digests
     except KeyError:
-        return config_digest, []
+        layer_digests = []
+    try:
+        layer_digests = [layer["blobSum"] for layer in parsed_content["fsLayers"]]
+    except KeyError:
+        layer_digests = []
+    return config_digest, layer_digests
 
 def read_s3_content_from_csv():
     # Replace with your actual credentials and endpoint
@@ -41,14 +46,14 @@ def read_s3_content_from_csv():
 
                    # Assuming the content is JSON-formatted, parse it
                    parsed_content = json.loads(content)
-
+                   manifhash = object_key[7:19]
                    # Extract digests
                    config_digest, layer_digests = extract_digests(parsed_content)
                    if config_digest:
                       # Print CSV-formatted output
-                      print(f"{namespace},{repository},{tag},{config_digest}")
+                      print(f"{namespace},{repository},{tag}:{manifhash},{config_digest}")
                    for layer_digest in layer_digests:
-                      print(f"{namespace},{repository},{tag},{layer_digest}")
+                      print(f"{namespace},{repository},{tag}:{manifhash},{layer_digest}")
                 except Exception as e1:
                    print(f"Error accessing S3,{namespace}/{repository}:{tag},{object_key1},{e1}",file=sys.stderr)
     except Exception as e:
